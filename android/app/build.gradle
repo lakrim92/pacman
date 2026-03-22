@@ -1,6 +1,5 @@
-plugins {
-    id 'com.android.application'
-}
+// Style apply plugin classique — compatible avec buildscript ci-dessus
+apply plugin: 'com.android.application'
 
 android {
     namespace 'com.lakrim.pacman'
@@ -8,7 +7,7 @@ android {
 
     defaultConfig {
         applicationId "com.lakrim.pacman"
-        minSdk 23          // Android 6+ (couvre 98% des appareils)
+        minSdk 23
         targetSdk 34
         versionCode 1
         versionName "1.0"
@@ -16,13 +15,12 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix ""
             debuggable true
         }
         release {
             minifyEnabled false
+            signingConfig signingConfigs.debug
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
-            signingConfig signingConfigs.debug  // debug signing pour simplifier
         }
     }
 
@@ -31,7 +29,6 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    // Éviter les doublons de fichiers dans l'APK
     packagingOptions {
         resources {
             excludes += ['META-INF/DEPENDENCIES', 'META-INF/LICENSE', 'META-INF/NOTICE']
