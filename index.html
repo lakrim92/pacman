@@ -2,105 +2,81 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#000000">
 <link rel="manifest" href="manifest.json">
-<title>Pac-Man</title>
+<title>PAC-MAN</title>
 <style>
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+:root { --safe-top: env(safe-area-inset-top, 0px); }
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
 html, body {
-  width:100%; height:100%;
-  background:#000;
-  display:flex; flex-direction:column;
-  align-items:center; justify-content:flex-start;
-  overflow:hidden; touch-action:none;
-  font-family: monospace;
+  width:100%; height:100%; background:#000; overflow:hidden;
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+  font-family:'Courier New', monospace; touch-action:none;
 }
 #hud {
-  width:100%; max-width:520px;
+  width:100%; max-width:504px; flex-shrink:0;
   display:flex; justify-content:space-around; align-items:center;
-  padding:6px 4px; flex-shrink:0;
+  padding:6px 4px; padding-top:calc(6px + var(--safe-top));
+  background:#000; z-index:10;
 }
-.hb { display:flex; flex-direction:column; align-items:center; }
-.hl { color:#ffb8ff; font-size:9px; }
-.hv { color:#fff; font-size:14px; font-weight:bold; }
-#hv-level { color:#0ff; }
-#hv-map   { color:#0f0; }
-#hv-hi    { color:#ff0; }
-#lives-wrap { display:flex; gap:4px; }
-.life-dot { color:#FFD700; font-size:16px; }
-#wrap {
-  flex:1; width:100%; max-width:520px;
-  display:flex; align-items:center; justify-content:center;
-  overflow:hidden;
-}
-canvas { display:block; background:#000; touch-action:none; }
+.hb { display:flex; flex-direction:column; align-items:center; gap:1px; }
+.hl { color:#ffb8ff; font-size:8px; letter-spacing:1px; text-transform:uppercase; }
+.hv { color:#fff; font-size:15px; font-weight:bold; min-width:40px; text-align:center; }
+#wrap { flex:1; width:100%; max-width:504px; display:flex; align-items:center; justify-content:center; overflow:hidden; min-height:0; }
+canvas { display:block; image-rendering:pixelated; image-rendering:crisp-edges; cursor:none; }
 #dpad {
-  width:100%; max-width:520px;
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  grid-template-rows:repeat(2,56px);
-  gap:5px; padding:6px; flex-shrink:0;
+  width:100%; max-width:504px; flex-shrink:0;
+  display:grid; grid-template-columns:1fr 1fr 1fr; grid-template-rows:54px 54px;
+  gap:4px; padding:4px 8px 8px; background:#000;
 }
 .btn {
-  background:rgba(255,255,0,.1);
-  border:2px solid rgba(255,255,0,.35);
-  border-radius:10px; color:#ff0; font-size:24px;
+  background:rgba(255,255,0,.08); border:1.5px solid rgba(255,255,0,.3);
+  border-radius:10px; color:#FFD700; font-size:22px;
   display:flex; align-items:center; justify-content:center;
-  cursor:pointer; user-select:none;
 }
-.btn:active, .btn.pressed { background:rgba(255,255,0,.3); }
+.btn:active { background:rgba(255,255,0,.28); border-color:rgba(255,255,0,.7); }
 #btn-up    { grid-column:2; grid-row:1; }
 #btn-left  { grid-column:1; grid-row:2; }
 #btn-down  { grid-column:2; grid-row:2; }
 #btn-right { grid-column:3; grid-row:2; }
-/* Overlay */
-#overlay {
-  position:fixed; inset:0;
-  background:rgba(0,0,0,.9);
-  display:flex; flex-direction:column;
-  align-items:center; justify-content:center;
-  z-index:100; padding:24px; text-align:center;
-  color:#fff;
+/* ── OVERLAY ── */
+#ov {
+  position:fixed; inset:0; background:rgba(0,0,0,.92);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  z-index:100; padding:24px; text-align:center; gap:10px;
 }
-#overlay h1 { font-size:36px; color:#FFD700; letter-spacing:6px; margin-bottom:16px; }
-.ov-sub  { font-size:12px; color:#aaa; margin:5px 0; line-height:1.8; }
-.ov-score{ font-size:24px; color:#0ff; margin:12px 0; }
-.ov-rec  { font-size:13px; color:#ff0; margin:4px 0; }
-.ov-map  { font-size:12px; color:#0f0; }
-#play-btn {
-  margin-top:22px; padding:16px 40px;
-  background:#FFD700; color:#000; border:none;
-  border-radius:10px; font-size:15px; font-weight:bold;
-  cursor:pointer; font-family:monospace; letter-spacing:2px;
+#ov h1 { font-size:38px; color:#FFD700; letter-spacing:8px; text-shadow:0 0 20px #FFD70088; }
+#ov .sub { font-size:11px; color:#888; line-height:1.9; }
+#ov .big { font-size:26px; color:#0ff; }
+#ov .rec { font-size:13px; color:#FFD700; }
+#ov .info { font-size:11px; color:#0f0; }
+#ov button {
+  margin-top:6px; padding:16px 44px; background:#FFD700; color:#000;
+  border:none; border-radius:10px; font-size:16px; font-weight:bold;
+  cursor:pointer; font-family:inherit; letter-spacing:2px;
 }
-#play-btn:active { background:#ffc400; }
+#ov button:active { background:#e6c200; }
+/* ── BANNER ── */
 #banner {
-  position:fixed; top:0; left:0; right:0;
-  background:rgba(0,200,255,.15);
-  color:#0ff; font-size:13px; text-align:center;
-  padding:8px; z-index:50; display:none;
-  border-bottom:1px solid rgba(0,200,255,.3);
-}
-#errdiv {
-  position:fixed; bottom:0; left:0; right:0;
-  background:red; color:#fff;
-  font-size:11px; padding:4px;
-  display:none; z-index:200;
-  word-break:break-all;
+  position:fixed; top:0; left:0; right:0; z-index:50;
+  background:rgba(0,0,0,.7); border-bottom:1px solid rgba(0,200,255,.4);
+  color:#0ff; font-size:12px; text-align:center;
+  padding:8px; display:none; letter-spacing:1px;
 }
 </style>
 </head>
 <body>
 
 <div id="hud">
-  <div class="hb"><span class="hl">SCORE</span><span class="hv" id="hv-score">0</span></div>
-  <div class="hb"><span class="hl">NIVEAU</span><span class="hv" id="hv-level">1</span></div>
-  <div class="hb"><span class="hl">CARTE</span><span class="hv" id="hv-map">1/3</span></div>
-  <div class="hb"><span class="hl">RECORD</span><span class="hv" id="hv-hi">0</span></div>
-  <div class="hb"><span class="hl">VIES</span><div id="lives-wrap"></div></div>
+  <div class="hb"><span class="hl">SCORE</span><span class="hv" id="v-score">0</span></div>
+  <div class="hb"><span class="hl">NIVEAU</span><span class="hv" id="v-level">1</span></div>
+  <div class="hb"><span class="hl">CARTE</span><span class="hv" id="v-map">1/3</span></div>
+  <div class="hb"><span class="hl">RECORD</span><span class="hv" id="v-hi">0</span></div>
+  <div class="hb"><span class="hl">VIES</span><span class="hv" id="v-lives">●●●</span></div>
 </div>
 
 <div id="wrap"><canvas id="c"></canvas></div>
@@ -113,723 +89,910 @@ canvas { display:block; background:#000; touch-action:none; }
 </div>
 
 <div id="banner"></div>
-<div id="errdiv" id="errdiv"></div>
 
-<div id="overlay">
+<div id="ov">
   <h1>PAC-MAN</h1>
-  <p class="ov-sub">3 cartes · Difficulté progressive</p>
-  <p class="ov-sub">Swipe ou flèches pour jouer</p>
-  <p class="ov-sub">Mange tous les points pour passer au niveau suivant</p>
-  <button id="play-btn">▶ JOUER</button>
+  <p class="sub">3 cartes uniques &nbsp;·&nbsp; Difficulté progressive<br>Swipe ou flèches directionnelles pour jouer<br>Mange tous les points pour passer au niveau suivant</p>
+  <button id="ov-btn">▶&nbsp; JOUER</button>
 </div>
 
 <script>
-// ─── Affichage erreurs visibles sur mobile ───────────────────────────────────
-window.onerror = function(msg, src, line) {
-  var d = document.getElementById('errdiv');
-  d.style.display = 'block';
-  d.textContent = 'ERR L' + line + ': ' + msg;
-};
+'use strict';
 
-// ─── CONSTANTES ──────────────────────────────────────────────────────────────
-var CELL = 16;
-var COLS = 28, ROWS = 31;
-var W = COLS * CELL;   // 448
-var H = ROWS * CELL;   // 496
+// ═══════════════════════════════════════════════════════════════
+// CONSTANTES
+// ═══════════════════════════════════════════════════════════════
+const TILE = 18;           // px par cellule
+const COLS = 28, ROWS = 31;
+const W = COLS * TILE, H = ROWS * TILE;  // 504 × 558
 
-// types de cellules
-var EMPTY=0, WALL=1, DOT=2, POWER=3, DOOR=4;
+const T_EMPTY = 0, T_WALL = 1, T_DOT = 2, T_POWER = 3, T_DOOR = 4;
+const TWO_PI  = Math.PI * 2;
+const PAC_SPD_BASE   = 6.5;   // tuiles/seconde
+const GHOST_SPD_BASE = 5.5;
+const FRIGHT_SPD     = 3.0;
+const EATEN_SPD      = 10.0;
 
-// ─── CANVAS ──────────────────────────────────────────────────────────────────
-var canvas = document.getElementById('c');
-var ctx    = canvas.getContext('2d');
+// Timing modes scatter/chase (secondes)
+const MODE_SEC = [7, 20, 7, 20, 5, 20, 5, 9999];
+
+const WALL_COLORS = ['#3a3aff', '#33bb33', '#ff3333'];  // par carte
+const MAP_NAMES   = ['Classique', 'Croisement', 'Labyrinthe'];
+
+// ═══════════════════════════════════════════════════════════════
+// LABYRINTHES (28 × 31)  0=vide 1=mur 2=point 3=super 4=porte
+// ═══════════════════════════════════════════════════════════════
+const MAP_DATA = [
+// ── CARTE 1 : Classique ─────────────────────────────────────
+[[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+ [1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,1],
+ [1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
+ [1,3,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,3,1],
+ [1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
+ [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+ [1,2,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,2,1],
+ [1,2,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,2,1],
+ [1,2,2,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,2,2,1],
+ [1,1,1,1,1,1,2,1,1,1,1,1,0,1,1,0,1,1,1,1,1,2,1,1,1,1,1,1],
+ [1,1,1,1,1,1,2,1,1,1,1,1,0,1,1,0,1,1,1,1,1,2,1,1,1,1,1,1],
+ [1,1,1,1,1,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,1,1,1,1,1],
+ [1,1,1,1,1,1,2,1,1,0,1,1,1,4,4,1,1,1,0,1,1,2,1,1,1,1,1,1],
+ [1,1,1,1,1,1,2,1,1,0,1,0,0,0,0,0,0,1,0,1,1,2,1,1,1,1,1,1],
+ [0,0,0,0,0,0,2,0,0,0,1,0,0,0,0,0,0,1,0,0,0,2,0,0,0,0,0,0],
+ [1,1,1,1,1,1,2,1,1,0,1,0,0,0,0,0,0,1,0,1,1,2,1,1,1,1,1,1],
+ [1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1],
+ [1,1,1,1,1,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,1,1,1,1,1],
+ [1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1],
+ [1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1],
+ [1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,1],
+ [1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
+ [1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
+ [1,3,2,2,1,1,2,2,2,2,2,2,2,0,0,2,2,2,2,2,2,2,1,1,2,2,3,1],
+ [1,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,1],
+ [1,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,1],
+ [1,2,2,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,2,2,1],
+ [1,2,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,2,1],
+ [1,2,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,2,1],
+ [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+ [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]],
+// ── CARTE 2 : Croisement ───────────────────────────────────
+[[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+ [1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,1],
+ [1,2,1,1,2,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,2,1],
+ [1,3,1,1,2,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,3,1],
+ [1,2,1,1,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,1,2,1,2,1],
+ [1,2,2,2,2,2,1,2,1,1,1,1,1,1,1,1,1,1,1,2,1,2,2,2,2,2,2,1],
+ [1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1],
+ [1,1,1,1,2,1,1,2,1,1,2,2,2,2,2,2,2,1,1,2,1,1,2,1,1,1,1,1],
+ [1,2,2,2,2,2,2,2,1,1,2,1,1,1,1,1,2,1,1,2,2,2,2,2,2,2,2,1],
+ [1,1,1,1,1,1,2,1,1,1,2,1,0,1,1,0,2,1,1,1,2,1,1,1,1,1,1,1],
+ [1,1,1,1,1,1,2,1,1,1,2,1,0,1,1,0,2,1,1,1,2,1,1,1,1,1,1,1],
+ [1,1,1,1,1,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,2,1,1,1,1,1,1,1],
+ [1,1,1,1,1,1,2,1,1,0,1,1,1,4,4,1,1,1,0,1,2,1,1,1,1,1,1,1],
+ [1,1,1,1,1,1,2,1,1,0,1,0,0,0,0,0,0,1,0,1,2,1,1,1,1,1,1,1],
+ [0,0,0,0,0,0,2,0,0,0,1,0,0,0,0,0,0,1,0,0,2,0,0,0,0,0,0,0],
+ [1,1,1,1,1,1,2,1,1,0,1,0,0,0,0,0,0,1,0,1,2,1,1,1,1,1,1,1],
+ [1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,2,1,1,1,1,1,1,1],
+ [1,1,1,1,1,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,2,1,1,1,1,1,1,1],
+ [1,2,1,1,1,1,2,1,1,0,2,1,1,1,1,1,1,2,0,1,2,1,1,1,1,2,2,1],
+ [1,2,1,1,1,1,2,1,1,0,2,1,1,1,1,1,1,2,0,1,2,1,1,1,1,2,2,1],
+ [1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,1],
+ [1,2,1,1,1,2,1,1,2,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
+ [1,3,1,1,1,2,1,1,2,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,3,1],
+ [1,2,2,2,1,2,2,2,2,2,2,2,2,0,0,2,2,2,2,2,2,2,2,2,1,2,2,1],
+ [1,1,1,2,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1],
+ [1,1,1,2,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1],
+ [1,2,2,2,2,2,2,2,2,2,1,1,2,1,1,2,1,1,2,2,2,2,2,2,2,2,2,1],
+ [1,2,1,1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,1,2,1],
+ [1,2,1,1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,1,2,1],
+ [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+ [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]],
+// ── CARTE 3 : Labyrinthe ───────────────────────────────────
+[[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+ [1,2,2,2,1,2,2,2,2,1,2,2,2,1,1,2,2,2,1,2,2,2,2,1,2,2,2,1],
+ [1,2,1,2,1,2,1,1,2,1,2,1,2,1,1,2,1,2,1,2,1,1,2,1,2,1,2,1],
+ [1,3,1,2,2,2,1,1,2,2,2,1,2,1,1,2,1,2,2,2,1,1,2,2,2,1,3,1],
+ [1,2,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,2,1],
+ [1,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,1],
+ [1,1,1,2,1,1,1,2,1,2,1,1,1,1,1,1,1,1,2,1,2,1,1,1,2,1,1,1],
+ [1,1,1,2,1,1,1,2,1,2,1,1,1,1,1,1,1,1,2,1,2,1,1,1,2,1,1,1],
+ [1,2,2,2,2,2,2,2,1,2,2,2,2,1,1,2,2,2,2,1,2,2,2,2,2,2,2,1],
+ [1,1,1,1,1,1,2,1,1,1,1,1,0,1,1,0,1,1,1,1,1,2,1,1,1,1,1,1],
+ [1,1,1,1,1,1,2,1,1,1,1,1,0,1,1,0,1,1,1,1,1,2,1,1,1,1,1,1],
+ [1,1,1,1,1,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,1,1,1,1,1],
+ [1,1,1,1,1,1,2,1,1,0,1,1,1,4,4,1,1,1,0,1,1,2,1,1,1,1,1,1],
+ [1,1,1,1,1,1,2,1,1,0,1,0,0,0,0,0,0,1,0,1,1,2,1,1,1,1,1,1],
+ [0,0,0,0,0,0,2,0,0,0,1,0,0,0,0,0,0,1,0,0,0,2,0,0,0,0,0,0],
+ [1,1,1,1,1,1,2,1,1,0,1,0,0,0,0,0,0,1,0,1,1,2,1,1,1,1,1,1],
+ [1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1],
+ [1,1,1,1,1,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,1,1,1,1,1],
+ [1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1],
+ [1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1],
+ [1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,1],
+ [1,2,1,1,2,1,1,2,1,1,2,1,2,1,1,2,1,2,1,1,2,1,1,2,1,1,2,1],
+ [1,2,1,1,2,1,1,2,1,1,2,1,2,1,1,2,1,2,1,1,2,1,1,2,1,1,2,1],
+ [1,3,2,2,2,2,2,2,1,1,2,2,2,0,0,2,2,2,1,1,2,2,2,2,2,2,3,1],
+ [1,1,1,2,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,2,1,1],
+ [1,1,1,2,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,2,1,1],
+ [1,2,2,2,2,2,2,2,1,1,2,2,2,1,1,2,2,2,1,1,2,2,2,2,2,2,2,1],
+ [1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1],
+ [1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1],
+ [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+ [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]]
+];
+
+// ═══════════════════════════════════════════════════════════════
+// CANVAS
+// ═══════════════════════════════════════════════════════════════
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
 canvas.width  = W;
 canvas.height = H;
 
 function resize() {
-  var wrap    = document.getElementById('wrap');
-  var ww      = wrap.clientWidth  || window.innerWidth;
-  var wh      = wrap.clientHeight || window.innerHeight * 0.6;
-  var scale   = Math.min(ww / W, wh / H);
-  if (scale <= 0 || !isFinite(scale)) scale = 1;
+  const wrap  = document.getElementById('wrap');
+  const avW   = wrap.clientWidth  || window.innerWidth;
+  const avH   = wrap.clientHeight || window.innerHeight * 0.65;
+  const scale = Math.min(avW / W, avH / H);
   canvas.style.width  = Math.floor(W * scale) + 'px';
   canvas.style.height = Math.floor(H * scale) + 'px';
 }
 resize();
 window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 200));
 
-// ─── LABYRINTHES 28×31 ───────────────────────────────────────────────────────
-// 0=vide  1=mur  2=point  3=super  4=porte
+// ═══════════════════════════════════════════════════════════════
+// AUDIO (Web Audio API)
+// ═══════════════════════════════════════════════════════════════
+let AC = null;
 
-var MAPS = [
-// ── CARTE 1 : Classique ─────────────────────────────────────────────────────
-[
-[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-[1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,1],
-[1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
-[1,3,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,3,1],
-[1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
-[1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
-[1,2,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,2,1],
-[1,2,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,2,1],
-[1,2,2,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,2,2,1],
-[1,1,1,1,1,1,2,1,1,1,1,1,0,1,1,0,1,1,1,1,1,2,1,1,1,1,1,1],
-[1,1,1,1,1,1,2,1,1,1,1,1,0,1,1,0,1,1,1,1,1,2,1,1,1,1,1,1],
-[1,1,1,1,1,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,1,1,1,1,1],
-[1,1,1,1,1,1,2,1,1,0,1,1,1,4,4,1,1,1,0,1,1,2,1,1,1,1,1,1],
-[1,1,1,1,1,1,2,1,1,0,1,0,0,0,0,0,0,1,0,1,1,2,1,1,1,1,1,1],
-[0,0,0,0,0,0,2,0,0,0,1,0,0,0,0,0,0,1,0,0,0,2,0,0,0,0,0,0],
-[1,1,1,1,1,1,2,1,1,0,1,0,0,0,0,0,0,1,0,1,1,2,1,1,1,1,1,1],
-[1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1],
-[1,1,1,1,1,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,1,1,1,1,1],
-[1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1],
-[1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1],
-[1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,1],
-[1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
-[1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
-[1,3,2,2,1,1,2,2,2,2,2,2,2,0,0,2,2,2,2,2,2,2,1,1,2,2,3,1],
-[1,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,1],
-[1,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,1],
-[1,2,2,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,2,2,1],
-[1,2,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,2,1],
-[1,2,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,2,1],
-[1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
-[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-],
-// ── CARTE 2 : Croisement ────────────────────────────────────────────────────
-[
-[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-[1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,1],
-[1,2,1,1,2,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,2,1],
-[1,3,1,1,2,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,3,1],
-[1,2,1,1,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,1,2,1,2,1],
-[1,2,2,2,2,2,1,2,1,1,1,1,1,1,1,1,1,1,1,2,1,2,2,2,2,2,2,1],
-[1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1],
-[1,1,1,1,2,1,1,2,1,1,2,2,2,2,2,2,2,1,1,2,1,1,2,1,1,1,1,1],
-[1,2,2,2,2,2,2,2,1,1,2,1,1,1,1,1,2,1,1,2,2,2,2,2,2,2,2,1],
-[1,1,1,1,1,1,2,1,1,1,2,1,0,1,1,0,2,1,1,1,2,1,1,1,1,1,1,1],
-[1,1,1,1,1,1,2,1,1,1,2,1,0,1,1,0,2,1,1,1,2,1,1,1,1,1,1,1],
-[1,1,1,1,1,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,2,1,1,1,1,1,1,1],
-[1,1,1,1,1,1,2,1,1,0,1,1,1,4,4,1,1,1,0,1,2,1,1,1,1,1,1,1],
-[1,1,1,1,1,1,2,1,1,0,1,0,0,0,0,0,0,1,0,1,2,1,1,1,1,1,1,1],
-[0,0,0,0,0,0,2,0,0,0,1,0,0,0,0,0,0,1,0,0,2,0,0,0,0,0,0,0],
-[1,1,1,1,1,1,2,1,1,0,1,0,0,0,0,0,0,1,0,1,2,1,1,1,1,1,1,1],
-[1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,2,1,1,1,1,1,1,1],
-[1,1,1,1,1,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,2,1,1,1,1,1,1,1],
-[1,2,1,1,1,1,2,1,1,0,2,1,1,1,1,1,1,2,0,1,2,1,1,1,1,2,2,1],
-[1,2,1,1,1,1,2,1,1,0,2,1,1,1,1,1,1,2,0,1,2,1,1,1,1,2,2,1],
-[1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,1],
-[1,2,1,1,1,2,1,1,2,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
-[1,3,1,1,1,2,1,1,2,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,3,1],
-[1,2,2,2,1,2,2,2,2,2,2,2,2,0,0,2,2,2,2,2,2,2,2,2,1,2,2,1],
-[1,1,1,2,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1],
-[1,1,1,2,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1],
-[1,2,2,2,2,2,2,2,2,2,1,1,2,1,1,2,1,1,2,2,2,2,2,2,2,2,2,1],
-[1,2,1,1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,1,2,1],
-[1,2,1,1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,1,2,1],
-[1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
-[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-],
-// ── CARTE 3 : Labyrinthe ────────────────────────────────────────────────────
-[
-[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-[1,2,2,2,1,2,2,2,2,1,2,2,2,1,1,2,2,2,1,2,2,2,2,1,2,2,2,1],
-[1,2,1,2,1,2,1,1,2,1,2,1,2,1,1,2,1,2,1,2,1,1,2,1,2,1,2,1],
-[1,3,1,2,2,2,1,1,2,2,2,1,2,1,1,2,1,2,2,2,1,1,2,2,2,1,3,1],
-[1,2,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,2,1],
-[1,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,1],
-[1,1,1,2,1,1,1,2,1,2,1,1,1,1,1,1,1,1,2,1,2,1,1,1,2,1,1,1],
-[1,1,1,2,1,1,1,2,1,2,1,1,1,1,1,1,1,1,2,1,2,1,1,1,2,1,1,1],
-[1,2,2,2,2,2,2,2,1,2,2,2,2,1,1,2,2,2,2,1,2,2,2,2,2,2,2,1],
-[1,1,1,1,1,1,2,1,1,1,1,1,0,1,1,0,1,1,1,1,1,2,1,1,1,1,1,1],
-[1,1,1,1,1,1,2,1,1,1,1,1,0,1,1,0,1,1,1,1,1,2,1,1,1,1,1,1],
-[1,1,1,1,1,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,1,1,1,1,1],
-[1,1,1,1,1,1,2,1,1,0,1,1,1,4,4,1,1,1,0,1,1,2,1,1,1,1,1,1],
-[1,1,1,1,1,1,2,1,1,0,1,0,0,0,0,0,0,1,0,1,1,2,1,1,1,1,1,1],
-[0,0,0,0,0,0,2,0,0,0,1,0,0,0,0,0,0,1,0,0,0,2,0,0,0,0,0,0],
-[1,1,1,1,1,1,2,1,1,0,1,0,0,0,0,0,0,1,0,1,1,2,1,1,1,1,1,1],
-[1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1],
-[1,1,1,1,1,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,1,1,1,1,1],
-[1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1],
-[1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1],
-[1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,1],
-[1,2,1,1,2,1,1,2,1,1,2,1,2,1,1,2,1,2,1,1,2,1,1,2,1,1,2,1],
-[1,2,1,1,2,1,1,2,1,1,2,1,2,1,1,2,1,2,1,1,2,1,1,2,1,1,2,1],
-[1,3,2,2,2,2,2,2,1,1,2,2,2,0,0,2,2,2,1,1,2,2,2,2,2,2,3,1],
-[1,1,1,2,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,2,1,1],
-[1,1,1,2,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,2,1,1],
-[1,2,2,2,2,2,2,2,1,1,2,2,2,1,1,2,2,2,1,1,2,2,2,2,2,2,2,1],
-[1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1],
-[1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1],
-[1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
-[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-],
-];
-
-var MAP_NAMES  = ['Classique','Croisement','Labyrinthe'];
-var WALL_FILL  = ['#00008b','#006400','#8b0000'];
-var WALL_EDGE  = ['#4444ff','#33bb33','#ff3333'];
-
-// ─── AUDIO ───────────────────────────────────────────────────────────────────
-var aCtx = null;
-function getAC() {
-  if (!aCtx) {
-    try { aCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){}
+function unlockAudio() {
+  if (!AC) {
+    try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { return; }
   }
-  // Mobile : AudioContext démarre en "suspended", il faut le reprendre
-  if (aCtx && aCtx.state === 'suspended') {
-    aCtx.resume();
-  }
-  return aCtx;
+  if (AC.state === 'suspended') AC.resume();
 }
-function beep(freq, dur, type, vol) {
+
+function beep(freq, dur, type = 'square', vol = 0.12, freqEnd = null) {
   try {
-    var ac = getAC(); if (!ac) return;
-    var o = ac.createOscillator(), g = ac.createGain();
-    o.type = type || 'square'; o.frequency.value = freq;
-    g.gain.setValueAtTime(vol||0.12, ac.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + dur);
-    o.connect(g); g.connect(ac.destination);
-    o.start(); o.stop(ac.currentTime + dur);
+    unlockAudio();
+    if (!AC || AC.state !== 'running') return;
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, AC.currentTime);
+    if (freqEnd) o.frequency.exponentialRampToValueAtTime(freqEnd, AC.currentTime + dur);
+    g.gain.setValueAtTime(vol, AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + dur);
+    o.connect(g); g.connect(AC.destination);
+    o.start(AC.currentTime);
+    o.stop(AC.currentTime + dur);
   } catch(e) {}
 }
-function sfxEat()   { beep(440, 0.04, 'sine', 0.08); }
-function sfxPow()   { beep(150, 0.3, 'sawtooth', 0.18); }
-function sfxDie()   { [350,250,150,80].forEach(function(f,i){ setTimeout(function(){ beep(f,.15,'square',.18); }, i*130); }); }
-function sfxGhost() { [800,600,900].forEach(function(f,i){ setTimeout(function(){ beep(f,.07,'sine',.18); }, i*55); }); }
-function sfxWin()   { [523,659,784,1047].forEach(function(f,i){ setTimeout(function(){ beep(f,.18,'sine',.22); }, i*180); }); }
 
-// ─── DIFFICULTÉ ──────────────────────────────────────────────────────────────
-function difficulty(level) {
-  var n = level - 1;
-  return {
-    pacSpd:    Math.min(0.075 + n*0.003, 0.12),
-    ghostSpd:  Math.min(0.060 + n*0.004, 0.11),
-    frightSpd: 0.035,
-    frightDur: Math.max(320 - n*18, 90),
-  };
+const SFX = {
+  dot:   () => beep(440, 0.04, 'sine', 0.07),
+  power: () => { beep(180, 0.2, 'sawtooth', 0.18, 80); beep(280, 0.3, 'sine', 0.1, 100); },
+  die:   () => [380,280,180,90].forEach((f,i) => setTimeout(() => beep(f,.14,'square',.18), i*130)),
+  ghost: () => [800,1000,700,900].forEach((f,i) => setTimeout(() => beep(f,.06,'sine',.2), i*50)),
+  win:   () => [523,659,784,1047,1319].forEach((f,i) => setTimeout(() => beep(f,.16,'sine',.2), i*160)),
+  start: () => [262,330,392,523].forEach((f,i) => setTimeout(() => beep(f,.12,'sine',.15), i*100)),
+};
+
+// ═══════════════════════════════════════════════════════════════
+// ÉTAT
+// ═══════════════════════════════════════════════════════════════
+const STATE = { TITLE:0, PLAYING:1, DYING:2, WIN:3, GAMEOVER:4 };
+
+let maze, totalDots;
+let score = 0, hiScore = 0, lives = 3, level = 1;
+let gameState = STATE.TITLE;
+let pac, ghosts;
+let powerTimer = 0, eatMult = 1;
+let modeTimer = 0, modeIdx = 0;
+let flashTimer = 0;
+let popups = [];   // points flottants à afficher
+let lastTs = 0;   // timestamp dernière frame
+
+// ─── DIFFICULTÉ ──────────────────────────────────────────────
+function getSpeed(base, lvl) {
+  return Math.min(base + (lvl - 1) * 0.4, base * 1.7);
 }
 
-// ─── ÉTAT GLOBAL ─────────────────────────────────────────────────────────────
-var maze, dots, score, hiScore, lives, level, diff;
-var pac, ghosts;
-var state = 'idle';      // idle | playing | dying | won | gameover
-var powTimer = 0, eatMult = 1;
-var frame = 0, flashT = 0;
-var modeT = 0, modeP = 0;
-var MODE_DUR = [420,1200,420,1200,300,1200,300,99999];
-
-var GCOL  = ['#ff0000','#ffb8ff','#00ffff','#ffb851'];
-var GSCATTER = [{x:25,y:0},{x:2,y:0},{x:27,y:30},{x:0,y:30}];
-var GSTART   = [{x:13.5,y:11},{x:13.5,y:13},{x:11.5,y:13},{x:15.5,y:13}];
-var GDEL     = [0,200,350,500];
-
-// ─── INIT ────────────────────────────────────────────────────────────────────
-function mapIdx()   { return (level-1) % 3; }
-function newMaze()  { return MAPS[mapIdx()].map(function(r){ return r.slice(); }); }
-
-function countDots() {
-  var n = 0;
-  for (var r=0;r<ROWS;r++) for (var c=0;c<COLS;c++) if (maze[r][c]===DOT||maze[r][c]===POWER) n++;
+// ─── MAP HELPERS ─────────────────────────────────────────────
+function mapIdx()  { return (level - 1) % 3; }
+function freshMaze() { return MAP_DATA[mapIdx()].map(r => [...r]); }
+function countDots(m) {
+  let n = 0;
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++)
+      if (m[r][c] === T_DOT || m[r][c] === T_POWER) n++;
   return n;
 }
 
-function init(keepScore) {
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+function initLevel(keepScore = false) {
   if (!keepScore) { score = 0; lives = 3; }
-  maze  = newMaze();
-  diff  = difficulty(level);
-  dots  = countDots();
-  powTimer = 0; eatMult = 1; flashT = 0;
-  modeT = 0; modeP = 0;
-  spawnPac(); spawnGhosts();
-  updateHUD();
+  maze       = freshMaze();
+  totalDots  = countDots(maze);
+  powerTimer = 0; eatMult = 1;
+  modeTimer  = 0; modeIdx = 0;
+  flashTimer = 0; popups  = [];
+  spawnPac();
+  spawnGhosts();
+  hud();
 }
 
 function spawnPac() {
-  // Commence à se déplacer vers la gauche comme dans le Pac-Man original
-  pac = { x:13.5, y:23, dx:-1, dy:0, ndx:-1, ndy:0, mth:0.2, mdir:1 };
+  pac = {
+    x: 13.5, y: 23,
+    dx: -1, dy: 0,    // part vers la gauche (comme l'original)
+    nx: -1, ny: 0,    // direction demandée
+    spd: getSpeed(PAC_SPD_BASE, level),
+  };
 }
+
+// Positions et configs des 4 fantômes
+const GHOST_CFG = [
+  { name:'Blinky', col:'#ff0000', sx:13.5, sy:11,   mode:'scatter', scatter:{x:25,y:0},  delay:0    },
+  { name:'Pinky',  col:'#ffb8ff', sx:13.5, sy:13,   mode:'house',   scatter:{x:2, y:0},  delay:2.5  },
+  { name:'Inky',   col:'#00ffff', sx:11.5, sy:13,   mode:'house',   scatter:{x:27,y:30}, delay:5.0  },
+  { name:'Clyde',  col:'#ffb851', sx:15.5, sy:13,   mode:'house',   scatter:{x:0, y:30}, delay:8.0  },
+];
 
 function spawnGhosts() {
-  ghosts = GCOL.map(function(col,i) {
-    return {
-      col:col, x:GSTART[i].x, y:GSTART[i].y,
-      dx: i===0?-1:0, dy:0,
-      mode: i===0?'active':'house',
-      fright:false, eaten:false,
-      scatter:GSCATTER[i],
-      exDelay:GDEL[i], exTimer:0,
-    };
-  });
+  ghosts = GHOST_CFG.map((cfg, i) => ({
+    name: cfg.name, col: cfg.col,
+    x: cfg.sx, y: cfg.sy,
+    dx: 0, dy: i === 0 ? 0 : (i % 2 === 0 ? 1 : -1),
+    mode: cfg.mode,         // house | leaving | scatter | chase | fright | eaten
+    scatter: cfg.scatter,
+    delay: cfg.delay,       // secondes avant de sortir
+    elapsed: 0,             // temps écoulé
+    fright: false,
+    eaten: false,
+    houseY: cfg.sy,
+    spd: getSpeed(GHOST_SPD_BASE, level),
+  }));
 }
 
-// ─── HUD ─────────────────────────────────────────────────────────────────────
-function updateHUD() {
-  document.getElementById('hv-score').textContent = score;
-  document.getElementById('hv-level').textContent = level;
-  document.getElementById('hv-map').textContent   = (mapIdx()+1)+'/3';
-  document.getElementById('hv-hi').textContent    = hiScore;
-  var lw = document.getElementById('lives-wrap'); lw.innerHTML = '';
-  for (var i=0;i<lives;i++) {
-    var s = document.createElement('span'); s.className='life-dot'; s.textContent='●'; lw.appendChild(s);
+// ═══════════════════════════════════════════════════════════════
+// COLLISION MAZE
+// ═══════════════════════════════════════════════════════════════
+function tileAt(tx, ty) {
+  const col = ((Math.floor(tx) % COLS) + COLS) % COLS;
+  const row = Math.floor(ty);
+  if (row < 0 || row >= ROWS) return T_EMPTY;
+  return maze[row][col];
+}
+
+// Peut-on se déplacer en direction (dx,dy) depuis (px,py) ?
+// Collision directionnelle : on teste le bord dans la direction + un side offset
+function canMove(px, py, dx, dy, passGate = false) {
+  const SIDE = 0.3;
+  const EDGE = 0.5;
+  if (dx > 0) {
+    return !isWall(px + EDGE, py - SIDE, passGate) && !isWall(px + EDGE, py + SIDE, passGate);
+  } else if (dx < 0) {
+    return !isWall(px - EDGE, py - SIDE, passGate) && !isWall(px - EDGE, py + SIDE, passGate);
+  } else if (dy > 0) {
+    return !isWall(px - SIDE, py + EDGE, passGate) && !isWall(px + SIDE, py + EDGE, passGate);
+  } else if (dy < 0) {
+    return !isWall(px - SIDE, py - EDGE, passGate) && !isWall(px + SIDE, py - EDGE, passGate);
   }
+  return true;
 }
 
-// ─── COLLISION MURS ──────────────────────────────────────────────────────────
-function wallAt(px, py) {
-  var col = ((Math.floor(px) % COLS) + COLS) % COLS;
-  var row = Math.floor(py);
-  if (row < 0 || row >= ROWS) return false;
-  var v = maze[row][col];
-  return v === WALL || v === DOOR;
-}
-
-// Collision directionnelle : on ne teste que le côté dans la direction du mouvement
-function blocked(px, py, dx, dy) {
-  var s = 0.32; // demi-largeur de pac (< 0.5 pour passer dans les couloirs)
-  if (dx > 0) return wallAt(px + 0.5, py - s) || wallAt(px + 0.5, py + s);
-  if (dx < 0) return wallAt(px - 0.5, py - s) || wallAt(px - 0.5, py + s);
-  if (dy > 0) return wallAt(px - s, py + 0.5) || wallAt(px + s, py + 0.5);
-  if (dy < 0) return wallAt(px - s, py - 0.5) || wallAt(px + s, py - 0.5);
+function isWall(px, py, passGate = false) {
+  const v = tileAt(px, py);
+  if (v === T_WALL) return true;
+  if (v === T_DOOR && !passGate) return true;
   return false;
 }
 
-// ─── UPDATE PAC-MAN ──────────────────────────────────────────────────────────
-function updatePac() {
-  var sp = diff.pacSpd;
+// ═══════════════════════════════════════════════════════════════
+// UPDATE PAC-MAN  (deltaTime en secondes)
+// ═══════════════════════════════════════════════════════════════
+function updatePac(dt) {
+  const spd = pac.spd * dt;
+  const cx  = Math.round(pac.x);
+  const cy  = Math.round(pac.y);
+  const nearCX = Math.abs(pac.x - cx) < spd + 0.15;
+  const nearCY = Math.abs(pac.y - cy) < spd + 0.15;
+  const atCenter = nearCX && nearCY;
 
-  // Snap à la grille pour autoriser un virage propre
-  var cx = Math.round(pac.x), cy = Math.round(pac.y);
-  var nearCenter = Math.abs(pac.x - cx) < sp + 0.12 && Math.abs(pac.y - cy) < sp + 0.12;
-
-  // Tentative de virage (seulement près d'un centre de cellule)
-  if (nearCenter && (pac.ndx !== 0 || pac.ndy !== 0)) {
-    if (!blocked(cx, cy, pac.ndx, pac.ndy)) {
-      pac.x = cx; pac.y = cy; // snap
-      pac.dx = pac.ndx; pac.dy = pac.ndy;
+  // Tenter un virage au centre de la cellule
+  if (atCenter && (pac.nx !== 0 || pac.ny !== 0)) {
+    if (canMove(cx, cy, pac.nx, pac.ny)) {
+      // Snap propre puis virage
+      pac.x = cx; pac.y = cy;
+      pac.dx = pac.nx; pac.dy = pac.ny;
     }
   }
 
-  // Mouvement dans la direction courante
+  // Avancer dans la direction courante
   if (pac.dx !== 0 || pac.dy !== 0) {
-    if (!blocked(pac.x, pac.y, pac.dx, pac.dy)) {
-      pac.x += pac.dx * sp;
-      pac.y += pac.dy * sp;
-    } else {
-      // Bloquer et snap au centre de la cellule courante
-      pac.x = Math.round(pac.x);
-      pac.y = Math.round(pac.y);
+    if (canMove(pac.x, pac.y, pac.dx, pac.dy)) {
+      pac.x += pac.dx * spd;
+      pac.y += pac.dy * spd;
+    } else if (atCenter) {
+      pac.x = cx; pac.y = cy;  // stopper proprement au centre
     }
   }
 
-  // tunnel
+  // Tunnel wrap
   if (pac.x < -0.5) pac.x = COLS - 0.5;
   if (pac.x > COLS - 0.5) pac.x = -0.5;
 
-  // animation bouche
-  if (pac.dx !== 0 || pac.dy !== 0) {
-    pac.mth += 0.05 * pac.mdir;
-    if (pac.mth >= 0.25) pac.mdir = -1;
-    if (pac.mth <= 0.01) pac.mdir =  1;
-  }
+  // Manger
+  eat(Math.round(pac.x), Math.round(pac.y));
+}
 
-  // manger
-  var col = Math.round(pac.x), row = Math.round(pac.y);
-  if (row>=0&&row<ROWS&&col>=0&&col<COLS) {
-    var v = maze[row][col];
-    if (v===DOT) {
-      maze[row][col]=EMPTY; score+=10; dots--; sfxEat(); updateHUD();
-      if (dots<=0) levelWon();
-    } else if (v===POWER) {
-      maze[row][col]=EMPTY; score+=50; dots--; sfxPow(); updateHUD();
-      powTimer=diff.frightDur; eatMult=1;
-      ghosts.forEach(function(g){
-        if (!g.eaten&&g.mode==='active'){ g.fright=true; g.dx=-g.dx; g.dy=-g.dy; }
-      });
-      if (dots<=0) levelWon();
-    }
+function eat(col, row) {
+  if (row < 0 || row >= ROWS || col < 0 || col >= COLS) return;
+  const v = maze[row][col];
+  if (v === T_DOT) {
+    maze[row][col] = T_EMPTY;
+    score += 10; totalDots--;
+    SFX.dot(); hud();
+    if (totalDots <= 0) triggerWin();
+  } else if (v === T_POWER) {
+    maze[row][col] = T_EMPTY;
+    score += 50; totalDots--;
+    SFX.power(); hud();
+    activatePower();
+    if (totalDots <= 0) triggerWin();
   }
 }
 
-// ─── UPDATE FANTÔMES ─────────────────────────────────────────────────────────
-function updateGhosts() {
-  modeT++;
-  if (modeT >= MODE_DUR[modeP]) { modeP=Math.min(modeP+1,MODE_DUR.length-1); modeT=0; }
-  var gmode = modeP%2===0 ? 'scatter':'chase';
-
-  if (powTimer>0) { powTimer--; if(powTimer<=0) ghosts.forEach(function(g){g.fright=false;}); }
-
-  ghosts.forEach(function(g,i) {
-    if (g.mode==='house') {
-      g.exTimer++;
-      if (g.exTimer >= g.exDelay) g.mode='exiting';
-      else { g.y += 0.04*(i%2===0?1:-1); g.y=Math.max(12,Math.min(14,g.y)); return; }
+function activatePower() {
+  powerTimer = Math.max(6 - (level - 1) * 0.4, 2.5); // sec, min 2.5s
+  eatMult = 1;
+  ghosts.forEach(g => {
+    if (g.mode === 'scatter' || g.mode === 'chase') {
+      g.fright = true;
+      g.dx = -g.dx; g.dy = -g.dy;  // demi-tour
     }
-    if (g.mode==='exiting') {
-      if (Math.abs(g.x-13.5)>0.15) g.x+=(13.5-g.x)*0.12;
-      if (g.y>11) g.y-=0.07;
-      else { g.y=11; g.mode='active'; g.dx=-1; g.dy=0; }
-      return;
-    }
-
-    var target = null;
-    if (g.eaten) {
-      target={x:13.5,y:13};
-      if (Math.abs(g.x-13.5)<0.5&&Math.abs(g.y-13)<0.5) {
-        g.eaten=false; g.fright=false; g.mode='house'; g.exTimer=0; g.exDelay=120; return;
-      }
-    } else if (!g.fright) {
-      if (gmode==='scatter') target=g.scatter;
-      else target=chaseTarget(g,i);
-    }
-
-    moveGhost(g, target);
   });
 }
 
-function chaseTarget(g,i) {
-  var px=pac.x,py=pac.y,pdx=pac.dx,pdy=pac.dy;
-  if (i===0) return {x:px,y:py};
-  if (i===1) return {x:px+pdx*4,y:py+pdy*4};
-  if (i===2) {
-    var ax=px+pdx*2,ay=py+pdy*2,b=ghosts[0];
-    return {x:ax+(ax-b.x),y:ay+(ay-b.y)};
+// ═══════════════════════════════════════════════════════════════
+// UPDATE FANTÔMES
+// ═══════════════════════════════════════════════════════════════
+function updateGhosts(dt) {
+  // Mise à jour du timer mode scatter/chase
+  modeTimer += dt;
+  if (modeTimer >= MODE_SEC[modeIdx]) {
+    modeIdx = Math.min(modeIdx + 1, MODE_SEC.length - 1);
+    modeTimer = 0;
   }
-  return Math.hypot(g.x-px,g.y-py)>8?{x:px,y:py}:g.scatter;
-}
+  const globalMode = modeIdx % 2 === 0 ? 'scatter' : 'chase';
 
-function moveGhost(g, target) {
-  var sp = g.eaten ? diff.ghostSpd * 1.8 : (g.fright ? diff.frightSpd : diff.ghostSpd);
-
-  // Choix de direction au centre de chaque cellule
-  var cx = Math.round(g.x), cy = Math.round(g.y);
-  var atCenter = Math.abs(g.x - cx) < sp + 0.08 && Math.abs(g.y - cy) < sp + 0.08;
-
-  if (atCenter) {
-    g.x = cx; g.y = cy;
-    var DIRS = [[1,0],[-1,0],[0,1],[0,-1]];
-    var valid = DIRS.filter(function(d) {
-      if (d[0] === -g.dx && d[1] === -g.dy) return false; // pas demi-tour
-      var nx = cx + d[0], ny = cy + d[1];
-      if (ny < 0 || ny >= ROWS) return false;
-      var col = ((nx % COLS) + COLS) % COLS;
-      var v = maze[ny][col];
-      return v !== WALL && (v !== DOOR || g.eaten);
-    });
-    if (valid.length) {
-      var chosen;
-      if (g.fright && !g.eaten) {
-        chosen = valid[Math.floor(Math.random() * valid.length)];
-      } else if (target) {
-        chosen = valid.reduce(function(b, d) {
-          var nd = Math.hypot(cx + d[0] - target.x, cy + d[1] - target.y);
-          var bd = Math.hypot(cx + b[0] - target.x, cy + b[1] - target.y);
-          return nd < bd ? d : b;
-        });
-      } else {
-        chosen = valid[0];
-      }
-      g.dx = chosen[0]; g.dy = chosen[1];
+  // Power timer
+  if (powerTimer > 0) {
+    powerTimer -= dt;
+    if (powerTimer <= 0) {
+      powerTimer = 0;
+      eatMult = 1;
+      ghosts.forEach(g => { g.fright = false; });
     }
   }
 
-  g.x += g.dx * sp;
-  g.y += g.dy * sp;
+  ghosts.forEach((g, i) => updateOneGhost(g, i, dt, globalMode));
+}
+
+function updateOneGhost(g, i, dt, globalMode) {
+  // ── Mode house : rebondir verticalement ──────────────────
+  if (g.mode === 'house') {
+    g.elapsed += dt;
+    g.y += g.dy * 1.5 * dt;
+    if (g.y > g.houseY + 0.5) g.dy = -1;
+    if (g.y < g.houseY - 0.5) g.dy =  1;
+    if (g.elapsed >= g.delay) {
+      g.mode = 'leaving';
+      g.dy = -1; g.dx = 0;
+    }
+    return;
+  }
+
+  // ── Mode leaving : sortir de la maison ───────────────────
+  if (g.mode === 'leaving') {
+    // 1) Centrer sur la colonne 13.5
+    if (Math.abs(g.x - 13.5) > 0.05) {
+      const dir = g.x < 13.5 ? 1 : -1;
+      g.x += dir * 2.5 * dt;
+      if (Math.abs(g.x - 13.5) < 0.05) g.x = 13.5;
+    } else {
+      // 2) Monter jusqu'à row 11
+      g.y -= 2.5 * dt;
+      if (g.y <= 11) {
+        g.y = 11; g.x = 13.5;
+        g.mode = globalMode;
+        g.dx = -1; g.dy = 0;
+      }
+    }
+    return;
+  }
+
+  // ── Mode eaten : retourner à la maison ───────────────────
+  if (g.eaten) {
+    moveToTarget(g, {x:13.5, y:13}, EATEN_SPD * dt, true);
+    if (Math.abs(g.x - 13.5) < 0.2 && Math.abs(g.y - 13) < 0.2) {
+      g.x = 13.5; g.y = 13;
+      g.eaten = false; g.fright = false;
+      g.mode = 'house';
+      g.elapsed = g.delay;  // sort rapidement
+      g.dy = -1;
+    }
+    return;
+  }
+
+  // ── Mode normal (scatter/chase/fright) ───────────────────
+  // Synchroniser le mode selon le timer global
+  if (!g.fright && g.mode !== 'house' && g.mode !== 'leaving' && g.mode !== 'eaten') {
+    g.mode = globalMode;
+  }
+
+  // Cible
+  let target = null;
+  if (g.fright) {
+    target = null;  // mouvement aléatoire
+  } else if (g.mode === 'scatter') {
+    target = g.scatter;
+  } else {
+    target = chaseTarget(g, ghosts.indexOf(g));
+  }
+
+  const spd = g.fright ? FRIGHT_SPD * dt : g.spd * dt;
+  moveGhost(g, target, spd, false);
+}
+
+function chaseTarget(g, i) {
+  const px = pac.x, py = pac.y, pdx = pac.dx, pdy = pac.dy;
+  switch(i) {
+    case 0: return { x: px, y: py };                                                 // Blinky : direct
+    case 1: return { x: px + pdx * 4, y: py + pdy * 4 };                            // Pinky  : 4 devant
+    case 2: {                                                                          // Inky   : vecteur
+      const ax = px + pdx * 2, ay = py + pdy * 2, b = ghosts[0];
+      return { x: ax + (ax - b.x), y: ay + (ay - b.y) };
+    }
+    case 3:                                                                            // Clyde  : conditionnel
+      return Math.hypot(g.x - px, g.y - py) > 8 ? {x:px,y:py} : g.scatter;
+    default: return { x: px, y: py };
+  }
+}
+
+function moveGhost(g, target, spd, passGate) {
+  // Décision de direction au centre de chaque cellule
+  const cx = Math.round(g.x), cy = Math.round(g.y);
+  const atCenter = Math.abs(g.x - cx) < spd + 0.08 && Math.abs(g.y - cy) < spd + 0.08;
+
+  if (atCenter) {
+    g.x = cx; g.y = cy;
+    const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+    // Pas de demi-tour (sauf si bloqué)
+    const valid = dirs.filter(([dx,dy]) => {
+      if (dx === -g.dx && dy === -g.dy) return false;
+      return canMove(cx, cy, dx, dy, passGate || g.eaten);
+    });
+
+    const choices = valid.length ? valid : dirs.filter(([dx,dy]) =>
+      canMove(cx, cy, dx, dy, passGate || g.eaten)
+    );
+
+    if (choices.length) {
+      let chosen;
+      if (!target) {
+        chosen = choices[Math.floor(Math.random() * choices.length)];
+      } else {
+        chosen = choices.reduce((best, d) => {
+          const nd = Math.hypot(cx + d[0] - target.x, cy + d[1] - target.y);
+          const bd = Math.hypot(cx + best[0] - target.x, cy + best[1] - target.y);
+          return nd < bd ? d : best;
+        });
+      }
+      [g.dx, g.dy] = chosen;
+    }
+  }
+
+  g.x += g.dx * spd;
+  g.y += g.dy * spd;
+
+  // Tunnel wrap
   if (g.x < -0.5) g.x = COLS - 0.5;
   if (g.x > COLS - 0.5) g.x = -0.5;
 }
 
-// ─── COLLISIONS ──────────────────────────────────────────────────────────────
-var floats=[];
-function checkCol() {
-  ghosts.forEach(function(g){
-    if(g.mode!=='active') return;
-    if(Math.hypot(pac.x-g.x,pac.y-g.y)<0.75){
-      if(g.fright&&!g.eaten){
-        g.eaten=true; g.fright=false;
-        var pts=200*Math.pow(2,eatMult-1); eatMult++; score+=pts; updateHUD();
-        sfxGhost(); floats.push({x:g.x,y:g.y,v:pts,t:50});
-      } else if(!g.eaten){ startDie(); }
+function moveToTarget(g, target, spd, passGate) {
+  const dx = target.x - g.x, dy = target.y - g.y;
+  const dist = Math.hypot(dx, dy);
+  if (dist < spd) { g.x = target.x; g.y = target.y; return; }
+  moveGhost(g, target, spd, passGate);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// COLLISIONS PAC ↔ FANTÔMES
+// ═══════════════════════════════════════════════════════════════
+function checkCollisions() {
+  for (const g of ghosts) {
+    if (g.mode === 'house' || g.mode === 'leaving') continue;
+    if (g.eaten) continue;
+    const dist = Math.hypot(pac.x - g.x, pac.y - g.y);
+    if (dist >= 0.85) continue;
+
+    if (g.fright) {
+      // Manger le fantôme
+      g.fright = false; g.eaten = true;
+      const pts = 200 * Math.pow(2, eatMult - 1);
+      eatMult = Math.min(eatMult + 1, 8);
+      score += pts; hud();
+      SFX.ghost();
+      popups.push({ x: g.x, y: g.y, txt: pts, ttl: 0.8, age: 0 });
+    } else {
+      // Pac meurt
+      triggerDie();
+      return;
     }
-  });
+  }
 }
 
-// ─── ÉTATS ───────────────────────────────────────────────────────────────────
-function startDie() {
-  if(state!=='playing') return;
-  state='dying'; sfxDie();
-  setTimeout(function(){
+// ═══════════════════════════════════════════════════════════════
+// TRANSITIONS D'ÉTAT
+// ═══════════════════════════════════════════════════════════════
+function triggerDie() {
+  if (gameState !== STATE.PLAYING) return;
+  gameState = STATE.DYING;
+  SFX.die();
+  setTimeout(() => {
     lives--;
-    if(lives<=0){ doGameOver(); return; }
-    updateHUD(); spawnPac(); spawnGhosts(); state='playing';
-  }, 1500);
+    if (lives <= 0) {
+      if (score > hiScore) { hiScore = score; try { localStorage.setItem('pm_hi', hiScore); } catch(e){} }
+      gameState = STATE.GAMEOVER;
+      showOverlay('GAME OVER', '#f44', true);
+    } else {
+      hud();
+      spawnPac(); spawnGhosts();
+      gameState = STATE.PLAYING;
+    }
+  }, 1800);
 }
 
-function levelWon() {
-  state='won'; sfxWin(); flashT=100;
-  setTimeout(function(){
+function triggerWin() {
+  if (gameState !== STATE.PLAYING) return;
+  gameState = STATE.WIN;
+  flashTimer = 3.0;  // sec
+  SFX.win();
+  setTimeout(() => {
     level++;
-    init(true);
-    state='playing';
-    banner('CARTE '+(mapIdx()+1)+'/3 — '+MAP_NAMES[mapIdx()], 2200);
-  }, 2800);
+    initLevel(true);
+    gameState = STATE.PLAYING;
+    showBanner(`CARTE ${mapIdx()+1}/3 — ${MAP_NAMES[mapIdx()]}`, 2200);
+  }, 3000);
 }
 
-function doGameOver() {
-  state='gameover';
-  var rec = score>hiScore;
-  if(rec){ hiScore=score; try{localStorage.setItem('pm_hi',hiScore);}catch(e){} }
-  updateHUD();
-  showOverlay('GAME OVER','#f44',rec);
+// ═══════════════════════════════════════════════════════════════
+// HUD
+// ═══════════════════════════════════════════════════════════════
+function hud() {
+  document.getElementById('v-score').textContent = score;
+  document.getElementById('v-level').textContent = level;
+  document.getElementById('v-map').textContent   = `${mapIdx()+1}/3`;
+  document.getElementById('v-hi').textContent    = hiScore;
+  document.getElementById('v-lives').textContent = '●'.repeat(Math.max(0, lives));
 }
 
-// ─── DRAW ─────────────────────────────────────────────────────────────────────
+function showBanner(msg, dur) {
+  const b = document.getElementById('banner');
+  b.textContent = msg; b.style.display = 'block';
+  clearTimeout(b._t);
+  b._t = setTimeout(() => { b.style.display = 'none'; }, dur);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDU
+// ═══════════════════════════════════════════════════════════════
+let tick = 0;  // compteur frames pour animations
+
 function drawMaze() {
-  var mi = mapIdx();
-  var wf = WALL_FILL[mi], we = WALL_EDGE[mi];
+  const mi   = mapIdx();
+  const wcol = WALL_COLORS[mi];
 
-  ctx.fillStyle='#000';
-  ctx.fillRect(0,0,W,H);
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
 
-  for (var r=0;r<ROWS;r++) {
-    for (var c=0;c<COLS;c++) {
-      var v=maze[r][c], x=c*CELL, y=r*CELL;
-      if (v===WALL) {
-        ctx.fillStyle = we;
-        ctx.fillRect(x,y,CELL,CELL);
-        ctx.fillStyle = wf;
-        ctx.fillRect(x+2,y+2,CELL-4,CELL-4);
-      } else if (v===DOT) {
-        ctx.fillStyle='#ffccbb';
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const v = maze[r][c];
+      const x = c * TILE, y = r * TILE;
+      if (v === T_WALL) {
+        ctx.fillStyle = wcol;
+        ctx.fillRect(x, y, TILE, TILE);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(x + 2, y + 2, TILE - 4, TILE - 4);
+      } else if (v === T_DOT) {
+        ctx.fillStyle = '#ffccbb';
         ctx.beginPath();
-        ctx.arc(x+CELL/2,y+CELL/2,2,0,6.28318);
+        ctx.arc(x + TILE/2, y + TILE/2, 2, 0, TWO_PI);
         ctx.fill();
-      } else if (v===POWER) {
-        var p=0.6+0.4*Math.sin(frame*0.13);
-        ctx.fillStyle='rgba(255,200,100,'+p+')';
+      } else if (v === T_POWER) {
+        const pulse = 0.55 + 0.45 * Math.sin(tick * 0.1);
+        ctx.fillStyle = `rgba(255,200,80,${pulse})`;
         ctx.beginPath();
-        ctx.arc(x+CELL/2,y+CELL/2,5,0,6.28318);
+        ctx.arc(x + TILE/2, y + TILE/2, 5.5, 0, TWO_PI);
         ctx.fill();
-      } else if (v===DOOR) {
-        ctx.fillStyle='#ffaaff';
-        ctx.fillRect(x+1,y+CELL/2-1,CELL-2,3);
+      } else if (v === T_DOOR) {
+        ctx.fillStyle = '#dd88ff';
+        ctx.fillRect(x + 2, y + TILE/2 - 1.5, TILE - 4, 3);
       }
     }
   }
 }
 
 function drawPac() {
-  var x=pac.x*CELL+CELL/2, y=pac.y*CELL+CELL/2, r=CELL*0.44;
-  var angle=0;
-  if(pac.dx===1) angle=0;
-  else if(pac.dx===-1) angle=Math.PI;
-  else if(pac.dy===-1) angle=-Math.PI/2;
-  else if(pac.dy===1)  angle=Math.PI/2;
+  const x = pac.x * TILE + TILE/2;
+  const y = pac.y * TILE + TILE/2;
+  const r = TILE * 0.44;
+
+  let angle = 0;
+  if (pac.dx ===  1) angle = 0;
+  else if (pac.dx === -1) angle = Math.PI;
+  else if (pac.dy === -1) angle = -Math.PI/2;
+  else if (pac.dy ===  1) angle =  Math.PI/2;
 
   ctx.save();
-  ctx.translate(x,y); ctx.rotate(angle);
+  ctx.translate(x, y);
+  ctx.rotate(angle);
 
-  if (state==='dying') {
-    var progress=Math.min(1,(Date.now()%1500)/1500);
-    var open=Math.PI*progress;
-    ctx.fillStyle='#FFD700';
-    ctx.beginPath(); ctx.moveTo(0,0);
-    ctx.arc(0,0,r,open,6.28318-open);
+  // Animation de mort
+  if (gameState === STATE.DYING) {
+    const prog = Math.min((Date.now() % 1800) / 1800, 1);
+    const open = Math.PI * prog;
+    ctx.fillStyle = '#FFD700';
+    ctx.beginPath(); ctx.moveTo(0, 0);
+    ctx.arc(0, 0, r, open, TWO_PI - open);
     ctx.closePath(); ctx.fill();
-    ctx.restore(); return;
+    ctx.restore();
+    return;
   }
 
-  var m = pac.mth*Math.PI;
-  ctx.fillStyle='#FFD700';
-  ctx.beginPath(); ctx.moveTo(0,0);
-  ctx.arc(0,0,r,m,6.28318-m);
+  // Bouche animée
+  const mouthOpen = (0.1 + 0.15 * Math.abs(Math.sin(tick * 0.18))) * Math.PI;
+
+  ctx.fillStyle = '#FFD700';
+  ctx.beginPath(); ctx.moveTo(0, 0);
+  ctx.arc(0, 0, r, mouthOpen, TWO_PI - mouthOpen);
   ctx.closePath(); ctx.fill();
-  // highlight
-  ctx.fillStyle='rgba(255,255,200,0.3)';
-  ctx.beginPath(); ctx.arc(-r*0.2,-r*0.25,r*0.35,0,6.28318); ctx.fill();
-  // oeil
-  ctx.fillStyle='#000';
-  ctx.beginPath(); ctx.arc(r*0.2,-r*0.5,r*0.1,0,6.28318); ctx.fill();
+
+  // Reflet
+  ctx.fillStyle = 'rgba(255,255,200,0.25)';
+  ctx.beginPath(); ctx.arc(-r * 0.2, -r * 0.25, r * 0.38, 0, TWO_PI); ctx.fill();
+
+  // Œil
+  ctx.fillStyle = '#000';
+  ctx.beginPath(); ctx.arc(r * 0.18, -r * 0.5, r * 0.1, 0, TWO_PI); ctx.fill();
+
   ctx.restore();
 }
 
 function drawGhost(g) {
-  if(g.mode==='house'&&g.exTimer<g.exDelay*0.25) return;
-  var x=g.x*CELL+CELL/2, y=g.y*CELL+CELL/2, r=CELL*0.44;
-  ctx.save(); ctx.translate(x,y);
+  if (g.mode === 'house' && g.elapsed < g.delay * 0.3) return;
+  const x = g.x * TILE + TILE/2;
+  const y = g.y * TILE + TILE/2;
+  const r = TILE * 0.44;
 
-  if (g.eaten) { drawGhostEyes(r,g.dx,g.dy); ctx.restore(); return; }
+  ctx.save();
+  ctx.translate(x, y);
 
-  var col=g.col;
+  // Fantôme mangé = seulement les yeux
+  if (g.eaten) {
+    drawEyes(r, g.dx, g.dy);
+    ctx.restore();
+    return;
+  }
+
+  // Couleur selon état
+  let col = g.col;
   if (g.fright) {
-    var blink=powTimer<100&&Math.floor(powTimer/12)%2===0;
-    col=blink?'#ffffff':'#2121cc';
+    const blinking = powerTimer < 1.5 && Math.floor(powerTimer / 0.25) % 2 === 0;
+    col = blinking ? '#ffffff' : '#2233cc';
   }
 
-  // corps
-  ctx.fillStyle=col;
+  // Corps
+  ctx.fillStyle = col;
   ctx.beginPath();
-  ctx.arc(0,0,r,Math.PI,0,false);
-  ctx.lineTo(r,r);
-  var step=r*2/3;
-  for(var i=3;i>=0;i--) ctx.lineTo(r-i*step, r+(i%2===0?0:r*0.3));
-  ctx.lineTo(-r,r); ctx.closePath(); ctx.fill();
-
-  if(!g.fright) {
-    drawGhostEyes(r,g.dx,g.dy);
-  } else {
-    // yeux effrayés
-    ctx.fillStyle='#fff';
-    ctx.beginPath(); ctx.arc(-r*.3,-r*.1,r*.16,0,6.28318); ctx.fill();
-    ctx.beginPath(); ctx.arc( r*.3,-r*.1,r*.16,0,6.28318); ctx.fill();
+  ctx.arc(0, 0, r, Math.PI, 0, false);
+  ctx.lineTo(r, r);
+  const w3 = (r * 2) / 3;
+  for (let i = 3; i >= 0; i--) {
+    ctx.lineTo(r - i * w3, r + (i % 2 === 0 ? 0 : r * 0.32));
   }
+  ctx.lineTo(-r, r);
+  ctx.closePath();
+  ctx.fill();
+
+  if (g.fright) {
+    // Visage effrayé
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(-r*.32, -r*.08, r*.15, 0, TWO_PI); ctx.fill();
+    ctx.beginPath(); ctx.arc( r*.32, -r*.08, r*.15, 0, TWO_PI); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(-r*.38, r*.22);
+    for (let i = 0; i <= 4; i++) ctx.lineTo(-r*.38 + i*.19*r, r*.22 + (i%2===0 ? .14 : -.14)*r);
+    ctx.stroke();
+  } else {
+    drawEyes(r, g.dx, g.dy);
+  }
+
   ctx.restore();
 }
 
-function drawGhostEyes(r,dx,dy) {
-  var ex=dx*r*0.1, ey=dy*r*0.1;
-  ctx.fillStyle='#fff';
-  ctx.beginPath(); ctx.arc(-r*.28,-r*.12,r*.2,0,6.28318); ctx.fill();
-  ctx.beginPath(); ctx.arc( r*.28,-r*.12,r*.2,0,6.28318); ctx.fill();
-  ctx.fillStyle='#00f';
-  ctx.beginPath(); ctx.arc(-r*.28+ex,-r*.12+ey,r*.1,0,6.28318); ctx.fill();
-  ctx.beginPath(); ctx.arc( r*.28+ex,-r*.12+ey,r*.1,0,6.28318); ctx.fill();
+function drawEyes(r, dx, dy) {
+  const ex = dx * r * 0.1, ey = dy * r * 0.1;
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(-r*.28, -r*.1, r*.2, 0, TWO_PI); ctx.fill();
+  ctx.beginPath(); ctx.arc( r*.28, -r*.1, r*.2, 0, TWO_PI); ctx.fill();
+  ctx.fillStyle = '#00b';
+  ctx.beginPath(); ctx.arc(-r*.28+ex, -r*.1+ey, r*.1, 0, TWO_PI); ctx.fill();
+  ctx.beginPath(); ctx.arc( r*.28+ex, -r*.1+ey, r*.1, 0, TWO_PI); ctx.fill();
 }
 
-function drawFloats() {
-  ctx.textAlign='center';
-  for(var i=floats.length-1;i>=0;i--){
-    var f=floats[i]; f.t--; f.y-=0.025;
-    if(f.t<=0){floats.splice(i,1);continue;}
-    ctx.globalAlpha=f.t/50;
-    ctx.fillStyle='#0ff'; ctx.font='bold 11px monospace';
-    ctx.fillText(f.v, f.x*CELL+CELL/2, f.y*CELL);
-    ctx.globalAlpha=1;
+function drawPopups(dt) {
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 11px monospace';
+  for (let i = popups.length - 1; i >= 0; i--) {
+    const p = popups[i];
+    p.age += dt; p.y -= dt * 0.8;
+    if (p.age >= p.ttl) { popups.splice(i, 1); continue; }
+    ctx.globalAlpha = 1 - p.age / p.ttl;
+    ctx.fillStyle = '#0ff';
+    ctx.fillText(p.txt, p.x * TILE + TILE/2, p.y * TILE);
   }
+  ctx.globalAlpha = 1;
+  ctx.textAlign = 'left';
 }
 
-function drawFlash() {
-  if(flashT<=0) return; flashT--;
-  if(Math.floor(flashT/8)%2===0){
-    ctx.strokeStyle='#fff'; ctx.lineWidth=2;
-    for(var r=0;r<ROWS;r++) for(var c=0;c<COLS;c++)
-      if(maze[r][c]===WALL) ctx.strokeRect(c*CELL+1,r*CELL+1,CELL-2,CELL-2);
-  }
-}
-
-// ─── BOUCLE ──────────────────────────────────────────────────────────────────
-function loop() {
-  requestAnimationFrame(loop);
-  frame++;
-  try {
-    drawMaze();
-    if(state==='playing'||state==='dying'||state==='won'){
-      if(state==='playing'){ updatePac(); updateGhosts(); checkCol(); }
-      ghosts.forEach(drawGhost);
-      drawPac();
-      drawFloats();
-      drawFlash();
+function drawFlash(dt) {
+  if (flashTimer <= 0) return;
+  flashTimer -= dt;
+  const mi = mapIdx();
+  if (Math.floor(flashTimer / 0.2) % 2 === 0) {
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (maze[r][c] === T_WALL) ctx.strokeRect(c*TILE+1, r*TILE+1, TILE-2, TILE-2);
+      }
     }
-  } catch(e) {
-    document.getElementById('errdiv').style.display='block';
-    document.getElementById('errdiv').textContent='ERR: '+e.message+' '+e.stack;
   }
 }
 
-// ─── INPUT CLAVIER ───────────────────────────────────────────────────────────
-document.addEventListener('keydown',function(e){
-  if(state!=='playing') return;
-  var k={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],
-          w:[0,-1],s:[0,1],a:[-1,0],d:[1,0]}[e.key];
-  if(k){pac.ndx=k[0];pac.ndy=k[1];e.preventDefault();}
+// ═══════════════════════════════════════════════════════════════
+// BOUCLE PRINCIPALE
+// ═══════════════════════════════════════════════════════════════
+function loop(ts) {
+  requestAnimationFrame(loop);
+  const dt = Math.min((ts - lastTs) / 1000, 0.05);  // max 50ms (cap lag)
+  lastTs = ts;
+  tick++;
+
+  drawMaze();
+
+  if (gameState === STATE.PLAYING) {
+    updatePac(dt);
+    updateGhosts(dt);
+    checkCollisions();
+  }
+
+  if (gameState === STATE.PLAYING || gameState === STATE.DYING || gameState === STATE.WIN) {
+    ghosts.forEach(drawGhost);
+    drawPac();
+    drawPopups(dt);
+    drawFlash(dt);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INPUT — CLAVIER
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  const map = { ArrowUp:[0,-1], ArrowDown:[0,1], ArrowLeft:[-1,0], ArrowRight:[1,0],
+                w:[0,-1], s:[0,1], a:[-1,0], d:[1,0] };
+  const d = map[e.key];
+  if (d && gameState === STATE.PLAYING) {
+    pac.nx = d[0]; pac.ny = d[1];
+    e.preventDefault();
+  }
 });
 
-// ─── BOUTONS D-PAD ───────────────────────────────────────────────────────────
-function bindBtn(id,dx,dy){
-  var el=document.getElementById(id);
-  function act(e){
+// ═══════════════════════════════════════════════════════════════
+// INPUT — BOUTONS D-PAD
+// ═══════════════════════════════════════════════════════════════
+[['btn-up',0,-1],['btn-left',-1,0],['btn-down',0,1],['btn-right',1,0]].forEach(([id,dx,dy]) => {
+  const el = document.getElementById(id);
+  const fn = e => {
     e.preventDefault();
-    if(state==='playing'){pac.ndx=dx;pac.ndy=dy;}
-    el.classList.add('pressed');
-    setTimeout(function(){el.classList.remove('pressed');},150);
-  }
-  el.addEventListener('touchstart',act,{passive:false});
-  el.addEventListener('mousedown',act);
-}
-bindBtn('btn-up',   0,-1);
-bindBtn('btn-left', -1,0);
-bindBtn('btn-down', 0, 1);
-bindBtn('btn-right',1, 0);
+    if (gameState === STATE.PLAYING) { pac.nx = dx; pac.ny = dy; }
+    unlockAudio();
+  };
+  el.addEventListener('touchstart', fn, { passive: false });
+  el.addEventListener('mousedown',  fn);
+});
 
-// ─── SWIPE sur le canvas ─────────────────────────────────────────────────────
-var tx0, ty0;
-canvas.addEventListener('touchstart', function(e) {
+// ═══════════════════════════════════════════════════════════════
+// INPUT — SWIPE SUR CANVAS
+// ═══════════════════════════════════════════════════════════════
+let swipeX = null, swipeY = null;
+
+canvas.addEventListener('touchstart', e => {
   e.preventDefault();
-  tx0 = e.touches[0].clientX;
-  ty0 = e.touches[0].clientY;
-}, {passive: false});
+  swipeX = e.touches[0].clientX;
+  swipeY = e.touches[0].clientY;
+  unlockAudio();
+}, { passive: false });
 
-canvas.addEventListener('touchmove', function(e) {
-  e.preventDefault(); // empêche le scroll pendant le jeu
-}, {passive: false});
+canvas.addEventListener('touchmove', e => { e.preventDefault(); }, { passive: false });
 
-canvas.addEventListener('touchend', function(e) {
+canvas.addEventListener('touchend', e => {
   e.preventDefault();
-  if (tx0 === undefined || state !== 'playing') return;
-  var dx = e.changedTouches[0].clientX - tx0;
-  var dy = e.changedTouches[0].clientY - ty0;
-  var dist = Math.sqrt(dx*dx + dy*dy);
-  if (dist > 15) { // seuil 15px
-    if (Math.abs(dx) > Math.abs(dy)) { pac.ndx = dx > 0 ? 1 : -1; pac.ndy = 0; }
-    else                              { pac.ndy = dy > 0 ? 1 : -1; pac.ndx = 0; }
+  if (swipeX === null || gameState !== STATE.PLAYING) { swipeX = swipeY = null; return; }
+  const dx = e.changedTouches[0].clientX - swipeX;
+  const dy = e.changedTouches[0].clientY - swipeY;
+  if (Math.abs(dx) > 12 || Math.abs(dy) > 12) {
+    if (Math.abs(dx) >= Math.abs(dy)) { pac.nx = dx > 0 ? 1 : -1; pac.ny = 0; }
+    else                              { pac.ny = dy > 0 ? 1 : -1; pac.nx = 0; }
   }
-  tx0 = ty0 = undefined;
-}, {passive: false});
+  swipeX = swipeY = null;
+}, { passive: false });
 
-// ─── OVERLAY / UI ────────────────────────────────────────────────────────────
-var overlay=document.getElementById('overlay');
+// ═══════════════════════════════════════════════════════════════
+// OVERLAY
+// ═══════════════════════════════════════════════════════════════
+const ov    = document.getElementById('ov');
+const ovBtn = document.getElementById('ov-btn');
 
-function showOverlay(title,color,isRec){
-  overlay.style.display='flex';
-  overlay.innerHTML=
-    '<h1 style="color:#FFD700">PAC-MAN</h1>'+
-    '<p style="font-size:18px;color:'+color+';margin:8px 0">'+title+'</p>'+
-    '<p class="ov-score" style="font-size:22px;color:#0ff;margin:10px 0">SCORE : '+score+'</p>'+
-    '<p class="ov-map" style="font-size:12px;color:#0f0">Carte '+(mapIdx()+1)+'/3 — '+MAP_NAMES[mapIdx()]+'</p>'+
-    '<p style="font-size:12px;color:#f80">Niveau atteint : '+level+'</p>'+
-    (isRec?'<p class="ov-rec" style="color:#ff0;font-size:13px;margin:6px 0">★ NOUVEAU RECORD ★</p>':'')+
-    '<p style="font-size:11px;color:#888;margin-top:6px">Record : '+hiScore+'</p>'+
-    '<button id="play-btn" style="margin-top:20px;padding:16px 40px;background:#FFD700;color:#000;border:none;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;font-family:monospace;letter-spacing:2px;">▶ REJOUER</button>';
-  document.getElementById('play-btn').addEventListener('click',startGame);
+function showOverlay(title, color, showScore = false) {
+  ov.innerHTML = `
+    <h1>PAC-MAN</h1>
+    ${title !== 'PAC-MAN' ? `<p style="font-size:20px;color:${color};font-weight:bold;letter-spacing:2px">${title}</p>` : ''}
+    ${showScore ? `<p class="big">${score.toLocaleString()} pts</p>` : ''}
+    ${showScore && score >= hiScore && score > 0 ? `<p class="rec">★ NOUVEAU RECORD ★</p>` : ''}
+    ${showScore ? `<p class="info">Carte ${mapIdx()+1}/3 — ${MAP_NAMES[mapIdx()]} · Niveau ${level}</p>` : ''}
+    ${!showScore ? `<p class="sub">3 cartes uniques &nbsp;·&nbsp; Difficulté progressive<br>Swipe ou flèches pour jouer</p>` : ''}
+    <p style="font-size:11px;color:#555;margin-top:4px">Record : ${hiScore.toLocaleString()}</p>
+    <button id="ov-btn2">▶&nbsp; ${showScore ? 'REJOUER' : 'JOUER'}</button>
+  `;
+  ov.style.display = 'flex';
+  document.getElementById('ov-btn2').addEventListener('click', startGame);
+  document.getElementById('ov-btn2').addEventListener('touchend', e => { e.preventDefault(); startGame(); });
 }
 
-function banner(msg,dur){
-  var b=document.getElementById('banner');
-  b.textContent=msg; b.style.display='block';
-  setTimeout(function(){b.style.display='none';},dur);
+function startGame() {
+  unlockAudio();
+  ov.style.display = 'none';
+  level = 1; score = 0; lives = 3;
+  initLevel(true);
+  gameState = STATE.PLAYING;
+  SFX.start();
+  showBanner('CARTE 1/3 — Classique', 2000);
 }
 
-function startGame(){
-  overlay.style.display='none';
-  level=1; score=0; lives=3;
-  init(true);
-  state='playing';
-  banner('CARTE 1/3 — Classique',2000);
-  getAC(); // débloquer AudioContext après geste utilisateur
-}
+// Bouton initial (titre)
+ovBtn.addEventListener('click', startGame);
+ovBtn.addEventListener('touchend', e => { e.preventDefault(); startGame(); });
 
-document.getElementById('play-btn').addEventListener('click',startGame);
+// ═══════════════════════════════════════════════════════════════
+// DÉMARRAGE
+// ═══════════════════════════════════════════════════════════════
+try { hiScore = parseInt(localStorage.getItem('pm_hi')) || 0; } catch(e) { hiScore = 0; }
+level = 1; score = 0; lives = 3;
+initLevel(true);  // pré-initialiser pour afficher la carte derrière l'overlay
 
-// ─── DÉMARRAGE ───────────────────────────────────────────────────────────────
-try { hiScore=parseInt(localStorage.getItem('pm_hi'))||0; } catch(e){hiScore=0;}
-level=1; score=0; lives=3;
-init(true);
-state='idle';
-requestAnimationFrame(loop);
+requestAnimationFrame(ts => { lastTs = ts; requestAnimationFrame(loop); });
 
-// ─── PWA ─────────────────────────────────────────────────────────────────────
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js').catch(function(){});
+// ── PWA Service Worker ──────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 </script>
 </body>
