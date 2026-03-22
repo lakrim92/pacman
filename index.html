@@ -346,7 +346,7 @@ function spawnGhosts() {
   ghosts = GHOST_CFG.map((cfg, i) => ({
     name: cfg.name, col: cfg.col,
     x: cfg.sx, y: cfg.sy,
-    dx: 0, dy: i === 0 ? 0 : (i % 2 === 0 ? 1 : -1),
+    dx: i === 0 ? -1 : 0, dy: i === 0 ? 0 : (i % 2 === 0 ? 1 : -1),
     mode: cfg.mode,         // house | leaving | scatter | chase | fright | eaten
     scatter: cfg.scatter,
     delay: cfg.delay,       // secondes avant de sortir
@@ -568,7 +568,11 @@ function chaseTarget(g, i) {
 function moveGhost(g, target, spd, passGate) {
   // Décision de direction au centre de chaque cellule
   const cx = Math.round(g.x), cy = Math.round(g.y);
-  const atCenter = Math.abs(g.x - cx) < spd + 0.08 && Math.abs(g.y - cy) < spd + 0.08;
+  // Only fire at center when approaching it (prevents re-triggering every frame after snap)
+  const approachingX = g.dx === 0 || (g.dx > 0 ? g.x <= cx : g.x >= cx);
+  const approachingY = g.dy === 0 || (g.dy > 0 ? g.y <= cy : g.y >= cy);
+  const atCenter = Math.abs(g.x - cx) < spd + 0.08 && Math.abs(g.y - cy) < spd + 0.08
+                   && approachingX && approachingY;
 
   if (atCenter) {
     g.x = cx; g.y = cy;

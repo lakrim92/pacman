@@ -37,6 +37,7 @@ canvas { display:block; image-rendering:pixelated; image-rendering:crisp-edges; 
   background:rgba(255,255,0,.08); border:1.5px solid rgba(255,255,0,.3);
   border-radius:10px; color:#FFD700; font-size:22px;
   display:flex; align-items:center; justify-content:center;
+  touch-action:manipulation; cursor:pointer;
 }
 .btn:active { background:rgba(255,255,0,.28); border-color:rgba(255,255,0,.7); }
 #btn-up    { grid-column:2; grid-row:1; }
@@ -326,9 +327,9 @@ function initLevel(keepScore = false) {
 
 function spawnPac() {
   pac = {
-    x: 13.5, y: 23,
-    dx: -1, dy: 0,    // part vers la gauche (comme l'original)
-    nx: -1, ny: 0,    // direction demandée
+    x: 14, y: 23,
+    dx: 0, dy: 0,     // immobile au départ
+    nx: 0, ny: 0,     // direction demandée
     spd: getSpeed(PAC_SPD_BASE, level),
   };
 }
@@ -345,7 +346,7 @@ function spawnGhosts() {
   ghosts = GHOST_CFG.map((cfg, i) => ({
     name: cfg.name, col: cfg.col,
     x: cfg.sx, y: cfg.sy,
-    dx: 0, dy: i === 0 ? 0 : (i % 2 === 0 ? 1 : -1),
+    dx: i === 0 ? -1 : 0, dy: i === 0 ? 0 : (i % 2 === 0 ? 1 : -1),
     mode: cfg.mode,         // house | leaving | scatter | chase | fright | eaten
     scatter: cfg.scatter,
     delay: cfg.delay,       // secondes avant de sortir
@@ -368,18 +369,18 @@ function tileAt(tx, ty) {
 }
 
 // Peut-on se déplacer en direction (dx,dy) depuis (px,py) ?
-// Collision directionnelle : on teste le bord dans la direction + un side offset
+// Vérifie la cellule que Pac-Man va réellement atteindre :
+//   dx=+1 : prochaine colonne à droite  → floor(px)+1
+//   dx=-1 : prochaine colonne à gauche  → ceil(px)-1   ← évite l'arrêt 1 case trop tôt
+//   dy=+1 : prochaine ligne en bas      → floor(py)+1
+//   dy=-1 : prochaine ligne en haut     → ceil(py)-1   ← idem
 function canMove(px, py, dx, dy, passGate = false) {
-  const SIDE = 0.3;
-  const EDGE = 0.5;
-  if (dx > 0) {
-    return !isWall(px + EDGE, py - SIDE, passGate) && !isWall(px + EDGE, py + SIDE, passGate);
-  } else if (dx < 0) {
-    return !isWall(px - EDGE, py - SIDE, passGate) && !isWall(px - EDGE, py + SIDE, passGate);
-  } else if (dy > 0) {
-    return !isWall(px - SIDE, py + EDGE, passGate) && !isWall(px + SIDE, py + EDGE, passGate);
-  } else if (dy < 0) {
-    return !isWall(px - SIDE, py - EDGE, passGate) && !isWall(px + SIDE, py - EDGE, passGate);
+  if (dx !== 0) {
+    const col = dx > 0 ? Math.floor(px) + 1 : Math.ceil(px) - 1;
+    return !isWall(col, Math.round(py), passGate);
+  } else if (dy !== 0) {
+    const row = dy > 0 ? Math.floor(py) + 1 : Math.ceil(py) - 1;
+    return !isWall(Math.round(px), row, passGate);
   }
   return true;
 }
@@ -402,13 +403,13 @@ function updatePac(dt) {
   const nearCY = Math.abs(pac.y - cy) < spd + 0.15;
   const atCenter = nearCX && nearCY;
 
-  // Tenter un virage au centre de la cellule
+  // Au centre d'une cellule : tenter le virage demandé puis vider la file
   if (atCenter && (pac.nx !== 0 || pac.ny !== 0)) {
     if (canMove(cx, cy, pac.nx, pac.ny)) {
-      // Snap propre puis virage
       pac.x = cx; pac.y = cy;
       pac.dx = pac.nx; pac.dy = pac.ny;
     }
+    pac.nx = 0; pac.ny = 0; // vider dans tous les cas — 1 seule tentative
   }
 
   // Avancer dans la direction courante
@@ -417,7 +418,8 @@ function updatePac(dt) {
       pac.x += pac.dx * spd;
       pac.y += pac.dy * spd;
     } else if (atCenter) {
-      pac.x = cx; pac.y = cy;  // stopper proprement au centre
+      pac.x = cx; pac.y = cy;
+      pac.dx = 0; pac.dy = 0; // stopper au mur, attend un nouvel input
     }
   }
 
@@ -566,7 +568,11 @@ function chaseTarget(g, i) {
 function moveGhost(g, target, spd, passGate) {
   // Décision de direction au centre de chaque cellule
   const cx = Math.round(g.x), cy = Math.round(g.y);
-  const atCenter = Math.abs(g.x - cx) < spd + 0.08 && Math.abs(g.y - cy) < spd + 0.08;
+  // Only fire at center when approaching it (prevents re-triggering every frame after snap)
+  const approachingX = g.dx === 0 || (g.dx > 0 ? g.x <= cx : g.x >= cx);
+  const approachingY = g.dy === 0 || (g.dy > 0 ? g.y <= cy : g.y >= cy);
+  const atCenter = Math.abs(g.x - cx) < spd + 0.08 && Math.abs(g.y - cy) < spd + 0.08
+                   && approachingX && approachingY;
 
   if (atCenter) {
     g.x = cx; g.y = cy;
@@ -912,11 +918,28 @@ document.addEventListener('keydown', e => {
   const el = document.getElementById(id);
   const fn = e => {
     e.preventDefault();
-    if (gameState === STATE.PLAYING) { pac.nx = dx; pac.ny = dy; }
+    e.stopPropagation();
+    if (gameState === STATE.PLAYING) {
+      const cx = Math.round(pac.x), cy = Math.round(pac.y);
+      const stopped  = pac.dx === 0 && pac.dy === 0;
+      const reversal = (dx !== 0 && pac.dx === -dx) || (dy !== 0 && pac.dy === -dy);
+      if (stopped || reversal) {
+        // Application immédiate si arrêté ou demi-tour
+        if (canMove(cx, cy, dx, dy)) {
+          pac.x = cx; pac.y = cy;
+          pac.dx = dx; pac.dy = dy;
+          pac.nx = 0;  pac.ny = 0;
+        }
+      } else {
+        // Sinon, mise en file pour le prochain centre de cellule
+        pac.nx = dx; pac.ny = dy;
+      }
+    }
     unlockAudio();
   };
-  el.addEventListener('touchstart', fn, { passive: false });
-  el.addEventListener('mousedown',  fn);
+  el.addEventListener('pointerdown', fn);
+  el.addEventListener('touchstart',  fn, { passive: false });
+  el.addEventListener('mousedown',   fn);
 });
 
 // ═══════════════════════════════════════════════════════════════
