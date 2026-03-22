@@ -369,12 +369,18 @@ function tileAt(tx, ty) {
 }
 
 // Peut-on se déplacer en direction (dx,dy) depuis (px,py) ?
-// Vérifie la cellule suivante dans la direction demandée (approche tile-based standard)
+// Vérifie la cellule que Pac-Man va réellement atteindre :
+//   dx=+1 : prochaine colonne à droite  → floor(px)+1
+//   dx=-1 : prochaine colonne à gauche  → ceil(px)-1   ← évite l'arrêt 1 case trop tôt
+//   dy=+1 : prochaine ligne en bas      → floor(py)+1
+//   dy=-1 : prochaine ligne en haut     → ceil(py)-1   ← idem
 function canMove(px, py, dx, dy, passGate = false) {
   if (dx !== 0) {
-    return !isWall(px + dx, Math.round(py), passGate);
+    const col = dx > 0 ? Math.floor(px) + 1 : Math.ceil(px) - 1;
+    return !isWall(col, Math.round(py), passGate);
   } else if (dy !== 0) {
-    return !isWall(Math.round(px), py + dy, passGate);
+    const row = dy > 0 ? Math.floor(py) + 1 : Math.ceil(py) - 1;
+    return !isWall(Math.round(px), row, passGate);
   }
   return true;
 }
