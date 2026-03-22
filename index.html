@@ -328,8 +328,8 @@ function initLevel(keepScore = false) {
 function spawnPac() {
   pac = {
     x: 14, y: 23,
-    dx: 0, dy: 0,     // attend le premier input du joueur
-    nx: 0, ny: 0,     // direction demandée
+    dx: 1, dy: 0,     // part vers la droite au départ
+    nx: 1, ny: 0,     // direction demandée
     spd: getSpeed(PAC_SPD_BASE, level),
   };
 }
@@ -910,8 +910,9 @@ document.addEventListener('keydown', e => {
     e.stopPropagation();
     if (gameState === STATE.PLAYING) {
       pac.nx = dx; pac.ny = dy;
-      // Allow immediate reversal (180°) without waiting for cell center
-      if (pac.dx === -dx || pac.dy === -dy) { pac.dx = dx; pac.dy = dy; }
+      // Allow immediate reversal only when actually moving in the opposite direction
+      const isReversal = (dx !== 0 && pac.dx === -dx) || (dy !== 0 && pac.dy === -dy);
+      if (isReversal) { pac.dx = dx; pac.dy = dy; }
     }
     unlockAudio();
   };
