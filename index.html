@@ -37,6 +37,7 @@ canvas { display:block; image-rendering:pixelated; image-rendering:crisp-edges; 
   background:rgba(255,255,0,.08); border:1.5px solid rgba(255,255,0,.3);
   border-radius:10px; color:#FFD700; font-size:22px;
   display:flex; align-items:center; justify-content:center;
+  touch-action:manipulation; cursor:pointer;
 }
 .btn:active { background:rgba(255,255,0,.28); border-color:rgba(255,255,0,.7); }
 #btn-up    { grid-column:2; grid-row:1; }
@@ -326,7 +327,7 @@ function initLevel(keepScore = false) {
 
 function spawnPac() {
   pac = {
-    x: 13.5, y: 23,
+    x: 14, y: 23,
     dx: -1, dy: 0,    // part vers la gauche (comme l'original)
     nx: -1, ny: 0,    // direction demandée
     spd: getSpeed(PAC_SPD_BASE, level),
@@ -912,11 +913,17 @@ document.addEventListener('keydown', e => {
   const el = document.getElementById(id);
   const fn = e => {
     e.preventDefault();
-    if (gameState === STATE.PLAYING) { pac.nx = dx; pac.ny = dy; }
+    e.stopPropagation();
+    if (gameState === STATE.PLAYING) {
+      pac.nx = dx; pac.ny = dy;
+      // Allow immediate reversal (180°) without waiting for cell center
+      if (pac.dx === -dx || pac.dy === -dy) { pac.dx = dx; pac.dy = dy; }
+    }
     unlockAudio();
   };
-  el.addEventListener('touchstart', fn, { passive: false });
-  el.addEventListener('mousedown',  fn);
+  el.addEventListener('pointerdown', fn);
+  el.addEventListener('touchstart',  fn, { passive: false });
+  el.addEventListener('mousedown',   fn);
 });
 
 // ═══════════════════════════════════════════════════════════════
