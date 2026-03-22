@@ -109,9 +109,9 @@ const W = COLS * TILE, H = ROWS * TILE;  // 504 × 558
 
 const T_EMPTY = 0, T_WALL = 1, T_DOT = 2, T_POWER = 3, T_DOOR = 4;
 const TWO_PI  = Math.PI * 2;
-const PAC_SPD_BASE   = 6.5;   // tuiles/seconde
-const GHOST_SPD_BASE = 5.5;
-const FRIGHT_SPD     = 3.0;
+const PAC_SPD_BASE   = 5.5;   // tuiles/seconde
+const GHOST_SPD_BASE = 3.8;
+const FRIGHT_SPD     = 2.2;
 const EATEN_SPD      = 10.0;
 
 // Timing modes scatter/chase (secondes)
@@ -392,6 +392,32 @@ function isWall(px, py, passGate = false) {
   return false;
 }
 
+// BFS exact path distance from (sx,sy) to target — avoids dead-end trap
+function bfsDist(sx, sy, tx, ty, passGate) {
+  const tgx = ((Math.round(tx) % COLS) + COLS) % COLS;
+  const tgy = Math.round(ty);
+  sx = ((sx % COLS) + COLS) % COLS;
+  if (sx === tgx && sy === tgy) return 0;
+  const visited = new Uint8Array(ROWS * COLS);
+  visited[sy * COLS + sx] = 1;
+  const Q = [[sx, sy, 0]];
+  const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+  for (let i = 0; i < Q.length; i++) {
+    const [x, y, d] = Q[i];
+    if (d >= 60) continue;
+    for (const [dx, dy] of dirs) {
+      if (!canMove(x, y, dx, dy, passGate)) continue;
+      const nx = ((x + dx) % COLS + COLS) % COLS;
+      const ny = y + dy;
+      if (ny < 0 || ny >= ROWS) continue;
+      if (nx === tgx && ny === tgy) return d + 1;
+      const idx = ny * COLS + nx;
+      if (!visited[idx]) { visited[idx] = 1; Q.push([nx, ny, d + 1]); }
+    }
+  }
+  return Infinity;
+}
+
 // ═══════════════════════════════════════════════════════════════
 // UPDATE PAC-MAN  (deltaTime en secondes)
 // ═══════════════════════════════════════════════════════════════
@@ -593,8 +619,8 @@ function moveGhost(g, target, spd, passGate) {
         chosen = choices[Math.floor(Math.random() * choices.length)];
       } else {
         chosen = choices.reduce((best, d) => {
-          const nd = Math.hypot(cx + d[0] - target.x, cy + d[1] - target.y);
-          const bd = Math.hypot(cx + best[0] - target.x, cy + best[1] - target.y);
+          const nd = bfsDist(cx + d[0], cy + d[1], target.x, target.y, passGate || g.eaten);
+          const bd = bfsDist(cx + best[0], cy + best[1], target.x, target.y, passGate || g.eaten);
           return nd < bd ? d : best;
         });
       }
