@@ -328,8 +328,8 @@ function initLevel(keepScore = false) {
 function spawnPac() {
   pac = {
     x: 14, y: 23,
-    dx: -1, dy: 0,    // part vers la gauche (comme l'original)
-    nx: -1, ny: 0,    // direction demandée
+    dx: 0, dy: 0,     // attend le premier input du joueur
+    nx: 0, ny: 0,     // direction demandée
     spd: getSpeed(PAC_SPD_BASE, level),
   };
 }
