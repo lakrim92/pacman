@@ -328,8 +328,8 @@ function initLevel(keepScore = false) {
 function spawnPac() {
   pac = {
     x: 14, y: 23,
-    dx: 1, dy: 0,     // part vers la droite au départ
-    nx: 1, ny: 0,     // direction demandée
+    dx: 0, dy: 0,     // immobile au départ
+    nx: 0, ny: 0,     // direction demandée
     spd: getSpeed(PAC_SPD_BASE, level),
   };
 }
@@ -397,13 +397,13 @@ function updatePac(dt) {
   const nearCY = Math.abs(pac.y - cy) < spd + 0.15;
   const atCenter = nearCX && nearCY;
 
-  // Tenter un virage au centre de la cellule
+  // Au centre d'une cellule : tenter le virage demandé puis vider la file
   if (atCenter && (pac.nx !== 0 || pac.ny !== 0)) {
     if (canMove(cx, cy, pac.nx, pac.ny)) {
-      // Snap propre puis virage
       pac.x = cx; pac.y = cy;
       pac.dx = pac.nx; pac.dy = pac.ny;
     }
+    pac.nx = 0; pac.ny = 0; // vider dans tous les cas — 1 seule tentative
   }
 
   // Avancer dans la direction courante
@@ -412,7 +412,8 @@ function updatePac(dt) {
       pac.x += pac.dx * spd;
       pac.y += pac.dy * spd;
     } else if (atCenter) {
-      pac.x = cx; pac.y = cy;  // stopper proprement au centre
+      pac.x = cx; pac.y = cy;
+      pac.dx = 0; pac.dy = 0; // stopper au mur, attend un nouvel input
     }
   }
 
@@ -909,10 +910,20 @@ document.addEventListener('keydown', e => {
     e.preventDefault();
     e.stopPropagation();
     if (gameState === STATE.PLAYING) {
-      pac.nx = dx; pac.ny = dy;
-      // Allow immediate reversal only when actually moving in the opposite direction
-      const isReversal = (dx !== 0 && pac.dx === -dx) || (dy !== 0 && pac.dy === -dy);
-      if (isReversal) { pac.dx = dx; pac.dy = dy; }
+      const cx = Math.round(pac.x), cy = Math.round(pac.y);
+      const stopped  = pac.dx === 0 && pac.dy === 0;
+      const reversal = (dx !== 0 && pac.dx === -dx) || (dy !== 0 && pac.dy === -dy);
+      if (stopped || reversal) {
+        // Application immédiate si arrêté ou demi-tour
+        if (canMove(cx, cy, dx, dy)) {
+          pac.x = cx; pac.y = cy;
+          pac.dx = dx; pac.dy = dy;
+          pac.nx = 0;  pac.ny = 0;
+        }
+      } else {
+        // Sinon, mise en file pour le prochain centre de cellule
+        pac.nx = dx; pac.ny = dy;
+      }
     }
     unlockAudio();
   };
