@@ -1,21 +1,18 @@
-// Service Worker - cache tout pour fonctionnement offline
-const CACHE = 'pacman-v1';
-const FILES = ['/pacman/', '/pacman/index.html', '/pacman/manifest.json', '/pacman/icon-192.png', '/pacman/icon-512.png'];
+var CACHE = 'pacman-v3';
+var FILES = ['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png'];
 
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));
+self.addEventListener('install', function(e) {
+  e.waitUntil(caches.open(CACHE).then(function(c){ return c.addAll(FILES); }));
   self.skipWaiting();
 });
 
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys =>
-    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-  ));
+self.addEventListener('activate', function(e) {
+  e.waitUntil(caches.keys().then(function(keys){
+    return Promise.all(keys.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);}));
+  }));
   self.clients.claim();
 });
 
-self.addEventListener('fetch', e => {
-  e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request))
-  );
+self.addEventListener('fetch', function(e) {
+  e.respondWith(caches.match(e.request).then(function(r){ return r||fetch(e.request); }));
 });
