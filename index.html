@@ -369,18 +369,12 @@ function tileAt(tx, ty) {
 }
 
 // Peut-on se déplacer en direction (dx,dy) depuis (px,py) ?
-// Collision directionnelle : on teste le bord dans la direction + un side offset
+// Vérifie la cellule suivante dans la direction demandée (approche tile-based standard)
 function canMove(px, py, dx, dy, passGate = false) {
-  const SIDE = 0.3;
-  const EDGE = 0.5;
-  if (dx > 0) {
-    return !isWall(px + EDGE, py - SIDE, passGate) && !isWall(px + EDGE, py + SIDE, passGate);
-  } else if (dx < 0) {
-    return !isWall(px - EDGE, py - SIDE, passGate) && !isWall(px - EDGE, py + SIDE, passGate);
-  } else if (dy > 0) {
-    return !isWall(px - SIDE, py + EDGE, passGate) && !isWall(px + SIDE, py + EDGE, passGate);
-  } else if (dy < 0) {
-    return !isWall(px - SIDE, py - EDGE, passGate) && !isWall(px + SIDE, py - EDGE, passGate);
+  if (dx !== 0) {
+    return !isWall(px + dx, Math.round(py), passGate);
+  } else if (dy !== 0) {
+    return !isWall(Math.round(px), py + dy, passGate);
   }
   return true;
 }
